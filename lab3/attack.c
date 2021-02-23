@@ -78,6 +78,7 @@ int main()
 
     memcpy(ip_resp + 41, name, 5);
     memcpy(ip_resp + 64, name, 5);
+    send_dns_response(ip_resp, n_resp);
 
     //##################################################################
   }
@@ -96,7 +97,14 @@ void send_dns_request(char *buffer, int pkt_size)
  * */
 void send_dns_response(char *buffer, int pkt_size)
 {
-  send_raw_packet(buffer, pkt_size);
+  for (unsigned short txid = 0; txid < 65535; txid++)
+  {
+    unsigned short txid_network_order;
+
+    txid_network_order = htons(txid);
+    memcpy(buffer + 28, &txid_network_order, 2);
+    send_raw_packet(buffer, pkt_size);
+  }
 }
 
 /* Send the raw packet out 
