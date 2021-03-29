@@ -29,3 +29,13 @@ while True:
     if True:
         ip = IP(packet)
         print(ip.summary())
+
+        # Send out a spoof packet using the tun interface
+        if ip['ICMP'].type == 8:
+            newip = IP(src=ip.dst, dst=ip.src)
+            newpkt = newip / ICMP(
+                type=0, code=0, seq=ip['ICMP'].seq,
+                id=ip['ICMP'].id) / ip['ICMP'].load
+            print(newpkt.summary())
+
+            os.write(tun, bytes(newpkt))
