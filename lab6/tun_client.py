@@ -4,6 +4,7 @@ import struct
 import os
 import time
 from scapy.all import *
+from select import *
 
 TUNSETIFF = 0x400454ca
 IFF_TUN = 0x0001
@@ -31,8 +32,23 @@ SERVER_IP = "10.0.2.8"
 SERVER_PORT = 9090
 
 while True:
-    # Get a packet from the tun interface
-    packet = os.read(tun, 2048)
-    if True:
-        # Send the packet via the tunnel
-        sock.sendto(packet, (SERVER_IP, SERVER_PORT))
+    # this will block until at least one interface is ready
+    ready, _, _ = select([sock, tun], [], [])
+
+    for fd in ready:
+        if fd is sock:
+            data, (ip, port) = sock.recvfrom(2048)
+            pkt = IP(data)
+            print("From socket <==: {} --> {}".format(pkt.src, pkt.dst))
+
+            # write to tun
+            os.write(tun, bytes(pkt))
+
+        if fd is tun:
+            # Get a packet from the tun interface
+            packet = os.read(tun, 2048)
+            pkt = IP(packet)
+            print("From tun ==>: {} --> {}".format(pkt.src, pkt.dst))
+
+            # Send the packet via the tunnel
+            sock.sendto(packet, (SERVER_IP, SERVER_PORT))
