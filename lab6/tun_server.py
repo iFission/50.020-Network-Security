@@ -4,6 +4,7 @@ import struct
 import os
 import time
 from scapy.all import *
+from select import *
 
 TUNSETIFF = 0x400454ca
 IFF_TUN = 0x0001
@@ -30,10 +31,24 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind((IP_A, PORT))
 
 while True:
-    data, (ip, port) = sock.recvfrom(2048)
-    print("{}:{} --> {}:{}".format(ip, port, IP_A, PORT))
-    pkt = IP(data)
-    print(" Inside: {} --> {}".format(pkt.src, pkt.dst))
+    # this will block until at least one interface is ready
+    ready, _, _ = select([sock, tun], [], [])
 
-    # write to tun
-    os.write(tun, bytes(pkt))
+    for fd in ready:
+        if fd is sock:
+            data, (ip, port) = sock.recvfrom(2048)
+            print("{}:{} --> {}:{}".format(ip, port, IP_A, PORT))
+            pkt = IP(data)
+            print("From socket <==: {} --> {}".format(pkt.src, pkt.dst))
+
+            # write to tun
+            os.write(tun, bytes(pkt))
+
+        if fd is tun:
+            # Get a packet from the tun interface
+            packet = os.read(tun, 2048)
+            pkt = IP(packet)
+            print("From tun ==>: {} --> {}".format(pkt.src, pkt.dst))
+
+            # Send the packet via the tunnel
+            sock.sendto(packet, (ip, port))
