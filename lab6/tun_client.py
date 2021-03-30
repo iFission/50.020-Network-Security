@@ -22,6 +22,7 @@ print("Interface Name: {}".format(ifname))
 # assign ip and bring up interface
 os.system("ip addr add 192.168.53.99/24 dev {}".format(ifname))
 os.system("ip link set dev {} up".format(ifname))
+os.system("ip route add 192.168.60.0/24 dev {}".format(ifname))
 
 # create udp socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
